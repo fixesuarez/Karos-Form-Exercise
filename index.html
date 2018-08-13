@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>karos-form-exercise</title>
+    <link rel="icon" href="./favicon.ico">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700,800" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/index.css">
+  </head>
+  <body>
+    <div id="karos-form-exercise">
+      <div class="top-bar"></div>
+      <div class="main">
+          <h1>{{ title }}</h1>
+        <form class="main-form" novalidate="true" @submit.prevent="validateForm">
+          <div class="form-section">
+            <div class="title-section">
+              <h2>Personal informations</h2>
+            </div>
+            <div class="field">
+              <label for="name">Name</label>
+              <div class="input-row">
+                <input type="text" tabindex="1" id="name" :class="{ inputError: name.isValid != null && !name.isValid, inputValid: name.isValid != null && name.isValid }" v-model="name.value" maxlength="30" @blur="validateName" @keyup="editName">
+                <i class="fas fa-check-circle state-valid" v-if="name.isValid != null && name.isValid"></i>
+                <i class="fas fa-exclamation-circle state-invalid" v-if="name.isValid != null && !name.isValid"></i>
+              </div>
+              <span class="warning" v-show="name.showWarning">Your name can not exceed 30 characters.</span>
+              <span class="error" v-show="name.isValid != null && !name.isValid">Your name is required.</span>
+            </div>
+
+            <div class="field">
+              <label for="email">Email</label>
+              <div class="input-row">
+                <input type="text" tabindex="2" id="email" :class="{ inputError: email.isValid != null && !email.isValid, inputValid: email.isValid != null && email.isValid }" v-model="email.value" @blur="validateEmail" @keyup="correctEmail">
+                <i class="fas fa-check-circle state-valid" v-if="email.isValid != null && email.isValid"></i>
+                <i class="fas fa-exclamation-circle state-invalid" v-if="email.isValid != null && !email.isValid"></i>
+              </div>
+              <span class="error" v-show="email.isValid != null && !email.isValid">{{ email.errorMessage }}</span>
+            </div>
+
+            <div class="field">
+              <label for="password">Password</label>
+              <div class="input-row">
+                <input type="password" tabindex="3" id="password" :class="{ inputError: password.isValid != null && !password.isValid, inputValid: password.isValid != null && password.isValid }" v-model="password.value" @blur="validatePassword" @keyup="editPassword">
+                <i class="fas fa-check-circle state-valid" v-if="password.isValid != null && password.isValid"></i>
+                <i class="fas fa-exclamation-circle state-invalid" v-if="password.isValid != null && !password.isValid"></i>
+              </div>
+              <a class="pwd-forgotten" href="#" @click="forgottenPassword">Forgotten password ?</a>
+              <span class="error" v-show="password.isValid != null && !password.isValid">Your password is required.</span>
+            </div>
+            
+            <div class="field">
+              <label for="country">Country</label>
+              <div>
+                <div v-for="country of countries.list" tabindex="4" id="country" class="chip" :class="{selectedCountry: country.selected}" @click="selectCountry(country)" @keyup.enter="selectCountry(country)">
+                  <img :src="country.image" :alt="country" width="96" height="96">
+                  <span class="country-name">{{ country.name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="title-section">
+              <h2>Recruitment questions</h2>
+            </div>
+            <div class="field">
+              <label for="date">Date</label>
+              <div class="input-row">
+                <input type="date" tabindex="5" id="date" :class="{ inputError: date.isValid != null && !date.isValid, inputValid: date.isValid != null && date.isValid }" v-model="date.value" @blur="validateDate">
+                <i class="fas fa-check-circle state-valid" v-if="date.isValid != null && date.isValid"></i>
+                <i class="fas fa-exclamation-circle state-invalid" v-if="date.isValid != null && !date.isValid"></i>
+              </div>
+              <span class="error" v-show="date.dirty && !date.value">A date is required.</span>
+            </div>          
+            
+            <div class="field">
+              <div class="checkbox-container" @click="toggleHired">
+                <input type="checkbox" v-model="hired" class="hired-checkbox" >
+                <div tabindex="6" @keyup.enter="toggleHired" class="checkmark"></div>
+                <label class="hired-label">Should we hire him ?</label>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" keyup.enter="validateForm" tabindex="7" class="submit-btn tooltip" :disabled=!formValid :class="{ btnDisabled: !formValid }">
+            <i class="fa fa-check"></i>Send information
+            <span class="tooltiptext" v-if="!formValid">Following fields are not valid:
+              <ul class="error-list">
+                <li v-for="error of invalidFields" class="error-item"> {{ error }}</li>
+              </ul>
+            </span></button>
+        </form>
+      </div>
+      <div class="results" v-if="allValues != null">
+        <div class="result-row"><span><i class="result-icon fas fa-user"></i></span><span>{{ allValues.name }}</span></div>
+        <div class="result-row"><span><i class="result-icon fas fa-envelope"></i></span><span>{{ allValues.email }}</span></div>
+        <div class="result-row"><span><i class="result-icon fas fa-lock"></i></span><span>{{ allValues.password }}</span></div>
+        <div class="result-row"><span><i class="result-icon fas fa-map-marker-alt"></i></span><span>{{ allValues.country }}</span></div>
+        <div class="result-row"><span><i class="result-icon fas fa-calendar"></i></span><span>{{ allValues.date }}</span></div>
+        <div class="result-row"><span><i v-if="!allValues.active" class="result-icon fas fa-times"></i><i v-else class="result-icon fas fa-check"></i></span><span>{{ allValues.active }}</span></div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+  </body>
+</html>
